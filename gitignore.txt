@@ -1,0 +1,27 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Firefox Extension Development
+web-ext-artifacts/
+*.xpi
+*.zip
+
+# Logs
+*.log
+
+# Temporary Files
+*.tmp
+*.bak
