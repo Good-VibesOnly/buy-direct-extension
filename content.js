@@ -9,7 +9,14 @@ function getProductInfo() {
   let brand = '';
   const brandLink = document.querySelector('#bylineInfo');
   if (brandLink) {
-    brand = brandLink.textContent.replace('Visit the ', '').replace(' Store', '').replace('Brand: ', '').trim();
+    // For books, the author name is inside an <a> tag within #bylineInfo.
+    // Grab just that link's text to avoid pulling in "(Author)", "Format:", etc.
+    const authorLink = brandLink.querySelector('a');
+    if (authorLink) {
+      brand = authorLink.textContent.trim();
+    } else {
+      brand = brandLink.textContent.replace('Visit the ', '').replace(' Store', '').replace('Brand: ', '').trim();
+    }
   }
   
   // Try alternative brand selectors
@@ -25,6 +32,22 @@ function getProductInfo() {
   const titleElement = document.querySelector('#productTitle');
   if (titleElement) {
     productName = titleElement.textContent.trim();
+  }
+  
+  // Fallback: if brand wasn't found via selectors, check the product title for known brands
+  if (!brand && productName) {
+    const KNOWN_BRANDS = [
+      'stanley', 'owala', 'nike', 'adidas', 'asics', 'apple', 'sony', 'samsung',
+      'dell', 'hp', 'lg', 'puma', 'reebok', 'underarmour', 'newbalance'
+    ];
+    const titleLower = productName.toLowerCase();
+    for (const knownBrand of KNOWN_BRANDS) {
+      if (titleLower.includes(knownBrand)) {
+        brand = knownBrand.charAt(0).toUpperCase() + knownBrand.slice(1);
+        console.log('Brand found in product title:', brand);
+        break;
+      }
+    }
   }
   
   // Detect product type

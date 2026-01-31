@@ -1,8 +1,8 @@
 // Alternative shopping sites
 const ALTERNATIVES = {
   allPurpose: [
-    { name: 'eBay', url: 'https://www.ebay.com/sch/i.html?_nkw=' },
-    { name: 'Costco', url: 'https://www.costco.com/CatalogSearch?keyword=' }
+    { name: 'Costco', url: 'https://www.costco.com/CatalogSearch?keyword=' },
+    { name: 'Search on DuckDuckGo', url: 'https://duckduckgo.com/?q=', prependBrand: true }
   ],
   tech: [
     { name: 'B&H Photo', url: 'https://www.bhphotovideo.com/c/search?q=' },
@@ -12,6 +12,19 @@ const ALTERNATIVES = {
     { name: 'Good On You', url: 'https://directory.goodonyou.eco/search/', useBrand: true }
   ]
 };
+
+// Build allPurpose alternative buttons, prepending brand where flagged (e.g. DuckDuckGo)
+function renderAllPurposeButtons(searchQuery, brand) {
+  let html = '';
+  ALTERNATIVES.allPurpose.forEach(site => {
+    let query = searchQuery;
+    if (site.prependBrand && brand) {
+      query = encodeURIComponent(brand) + '+' + searchQuery;
+    }
+    html += `<a href="${site.url}${query}" target="_blank" class="link-button alt-button">${site.name}</a>`;
+  });
+  return html;
+}
 
 // Known manufacturer search formats
 const MANUFACTURER_SEARCH_FORMATS = {
@@ -28,12 +41,14 @@ const MANUFACTURER_SEARCH_FORMATS = {
   'apple': 'https://www.apple.com/us/search/',
   'dell': 'https://www.dell.com/en-us/search/',
   'hp': 'https://www.hp.com/us-en/shop/s/all?q=',
-  'owala': 'https://owalalife.com/collections/all?product-type='
+  'owala': 'https://owalalife.com/collections/all?product-type=',
+  'stanley': 'https://www.stanley1913.com/search?q='
 };
 
 // Brands with non-standard domains
 const BRAND_DOMAINS = {
-  'owala': 'owalalife.com'
+  'owala': 'owalalife.com',
+  'stanley': 'stanley1913.com'
 };
 
 // Clean up generic product titles for better searches
@@ -60,7 +75,7 @@ function isGenericBrand(brand) {
   if (!brand || brand.length === 0) return true;
   
   const knownBrands = ['asics', 'nike', 'adidas', 'apple', 'sony', 'samsung', 'dell', 'hp', 'lg', 
-                       'owala', 'puma', 'reebok', 'underarmour', 'newbalance'];
+                       'owala', 'stanley', 'puma', 'reebok', 'underarmour', 'newbalance'];
   const cleanBrand = brand.toLowerCase().replace(/[^a-z0-9]/g, '');
   if (knownBrands.includes(cleanBrand)) return false;
   
@@ -225,9 +240,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${bookTitle}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(bookTitle, productInfo.brand);
     
     html += `
       </div>
@@ -307,9 +320,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${movieTitle}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(movieTitle, productInfo.brand);
     
     html += `</div>`;
     html += getReclassifyButtons();
@@ -339,9 +350,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${musicTitle}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(musicTitle, productInfo.brand);
     
     html += `</div>`;
     html += getReclassifyButtons();
@@ -380,9 +389,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${fullTitleEncoded}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(fullTitleEncoded, productInfo.brand);
     
     html += `</div>`;
     html += getReclassifyButtons();
@@ -413,9 +420,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${searchQuery}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(searchQuery, productInfo.brand);
     
     html += `</div>`;
     html += getReclassifyButtons();
@@ -446,9 +451,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${searchQuery}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(searchQuery, productInfo.brand);
     
     html += `</div>`;
     html += getReclassifyButtons();
@@ -467,7 +470,25 @@ async function displayResults(productInfo) {
         <div class="product-name">${productInfo.productName}</div>
         ${productInfo.brand ? `<div style="margin-top: 5px; color: #666;">by ${productInfo.brand}</div>` : ''}
       </div>
-      
+    `;
+    
+    // If we have a known brand, show manufacturer links first
+    if (productInfo.brand && !isGenericBrand(productInfo.brand)) {
+      const manufacturerInfo = getManufacturerInfo(productInfo.brand);
+      html += `
+        <div class="section">
+          <div class="section-title">🏭 Try the Manufacturer:</div>
+          <a href="${manufacturerInfo.searchUrl}${searchQuery}" target="_blank" class="link-button">
+            Search ${productInfo.brand}'s site
+          </a>
+          <a href="${manufacturerInfo.baseUrl}" target="_blank" class="link-button">
+            Visit ${productInfo.brand}'s site
+          </a>
+        </div>
+      `;
+    }
+    
+    html += `
       <div class="section">
         <div class="section-title">🌍 Sustainable Living:</div>
         <a href="https://earthhero.com/search?q=${searchQuery}" target="_blank" class="link-button">
@@ -482,9 +503,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Other Options:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${searchQuery}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(searchQuery, productInfo.brand);
     
     html += `</div>`;
     html += getReclassifyButtons();
@@ -536,9 +555,7 @@ async function displayResults(productInfo) {
         <div class="section-title">🛒 Alternative Retailers:</div>
     `;
     
-    ALTERNATIVES.allPurpose.forEach(site => {
-      html += `<a href="${site.url}${searchQuery}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-    });
+    html += renderAllPurposeButtons(searchQuery, productInfo.brand);
     
     html += `</div><div class="section"><div class="section-title">💻 If tech, try:</div>`;
     ALTERNATIVES.tech.forEach(site => {
@@ -592,9 +609,7 @@ function displayManufacturerResults(productInfo) {
       <div class="section-title">🛒 All-Purpose Alternatives:</div>
   `;
   
-  ALTERNATIVES.allPurpose.forEach(site => {
-    html += `<a href="${site.url}${cleanSearchQuery}" target="_blank" class="link-button alt-button">${site.name}</a>`;
-  });
+  html += renderAllPurposeButtons(cleanSearchQuery, productInfo.brand);
   
   html += `
     </div>
