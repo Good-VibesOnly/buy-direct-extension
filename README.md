@@ -35,7 +35,7 @@ Buy Direct analyzes Amazon product pages and suggests better places to buy:
 ## Installation
 
 ### From Firefox Add-ons (Recommended)
-1. Visit **[Buy Direct]**(https://addons.mozilla.org/en-US/firefox/addon/buy-direct/) on the official Mozilla Firefox Browser Add-ons store
+1. Visit [Buy Direct](https://addons.mozilla.org/en-US/firefox/addon/buy-direct/) on the official Mozilla Firefox Browser Add-ons store
 2. Click **Add to Firefox**
 
 ### Manual Installation (Development)
